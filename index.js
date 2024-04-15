@@ -45,7 +45,7 @@ app.post('/submit-form', (req, res) => {
   });
 });
 
-app.get('/test', () => {
+app.get('/test', (req, res) => {
     res.send('OK!')
 })
 
