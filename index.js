@@ -26,23 +26,55 @@ app.post('/submit-form', (req, res) => {
   const { name, email, message } = req.body;
 
   // Compose the email to be sent
-  const mailOptions = {
+  const automatedReplyMailOptions = {
     from: process.env.EMAIL, // Sender address
     to: email,                   // List of receivers
     subject: 'Thank you for your submission', // Subject line
     text: `Dear ${name},\n\nThank you for your message: "${message}". We will get back to you soon.\n\nBest regards,\nYour Company` // Plain text body
   };
 
-  // Send the email
-  transporter.sendMail(mailOptions, (error, info) => {
+  const inquiryMailOptions = {
+    from: process.env.EMAIL,
+    to: process.env.EMAIL,
+    subject: 'New inquiry',
+    text: `
+        New inquiry:
+        Name: ${name},
+        Email: ${email},
+        message: ${message}
+    `
+  }
+
+  let autoReplySuccess = false;
+  let inquiryySuccess = false;
+
+  transporter.sendMail(inquiryMailOptions, (error, info) => {
     if (error) {
+        // console.log('Error sending email:', error)
       console.error('Error sending email:', error);
-      res.status(500).send('Error sending email');
+      res.status(500).send('Error sending inquiry email');
     } else {
       console.log('Email sent:', info.response);
-      res.status(200).send('Email sent successfully');
+      inquiryySuccess = true;
+      if (autoReplySuccess) {
+            res.status(200).send('Emails sent successfully');
+      }
     }
   });
+
+  transporter.sendMail(automatedReplyMailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending email:', error);
+      res.status(500).send('Error sending automated reply');
+    } else {
+      console.log('Email sent:', info.response);
+      autoReplySuccess = true;
+      if (inquiryySuccess) {
+            res.status(200).send('Email sent successfully');
+      }
+    }
+  });
+
 });
 
 app.get('/test', (req, res) => {
